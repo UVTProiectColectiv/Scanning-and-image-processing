@@ -10,9 +10,11 @@ def run(path):
     choices = 5
     ans = [1, 2, 0, 1, 4]
     img = cv.imread(path)
+    # print(type(img))
 
     # PREPROCESSING
     img = cv.resize(img, (width_img, height_img))
+    # print(type(img))
     img_contours = img.copy()
     img_biggest_contours = img.copy()
     # analysing grayscale image is about 3 times faster
@@ -29,15 +31,17 @@ def run(path):
     cv.drawContours(img_contours, contours, -1, (0, 255, 0), 10)
 
     # FIND RECTANGLES
-    rect_con = utlis.rectContour(contours)
+    rect_con = utlis.rect_contour(contours)
     # print(rectCon)
-    biggest_contour = utlis.getCornerPoints(rect_con[0])
+    biggest_contour = utlis.get_corner_points(rect_con[0])
+    code_contour = utlis.get_corner_points(rect_con[2])
     # print(biggestContour)
     # print(biggestContour.shape)
     # rect_con[1] - the second largest
 
-    if biggest_contour.size != 0:
+    if biggest_contour.size != 0 and code_contour.size != 0:
         cv.drawContours(img_biggest_contours, biggest_contour, -1, (255, 0, 0), 30)
+        cv.drawContours(img_biggest_contours, code_contour, -1, (0, 0, 255), 30)
 
         biggest_contour = utlis.reorder(biggest_contour)
 
@@ -46,11 +50,14 @@ def run(path):
         matrix = cv.getPerspectiveTransform(pt_g1, pt_g2)
         img_warp_colored = cv.warpPerspective(img, matrix, (width_img, height_img))
 
+        code = utlis.extract_code(img)
+        print(code)
+
         # APPLY THRESHOLD
         img_warp_gray = cv.cvtColor(img_warp_colored, cv.COLOR_BGR2GRAY)
         img_thresh = cv.threshold(img_warp_gray, 170, 255, cv.THRESH_BINARY_INV)[1]
 
-        boxes = utlis.splitBoxes(img_thresh)
+        boxes = utlis.split_boxes(img_thresh)
         # cv.imshow("Test", boxes[2])
         # print(cv.countNonZero(boxes[2]), cv.countNonZero(boxes[1]))
 
@@ -58,6 +65,7 @@ def run(path):
         my_pixel_val = np.zeros((questions, choices))  # 5 questions, 5 multiple answers
         count_c = 0  # count columns
         count_r = 0  # count rows
+        # print(my_pixel_val)
 
         for image in boxes:
             total_pixels = cv.countNonZero(image)
@@ -66,7 +74,7 @@ def run(path):
             if count_c == choices:
                 count_r += 1
                 count_c = 0
-        print(my_pixel_val)
+        # print(my_pixel_val)
 
         # FINDING INDEX VALUES OF THE MARKINGS
         my_index = []
@@ -74,7 +82,7 @@ def run(path):
             arr = my_pixel_val[x]
             # print("Array: ", arr)
             my_index_val = np.where(arr == np.amax(arr))
-            # print(mmy_index_val)
+            # print(my_index_val)
             # print(my_index_val[0])
             # print(my_index_val[0][0])
             my_index.append(my_index_val[0][0])
@@ -93,9 +101,9 @@ def run(path):
 
         # DISPLAYING ANSWERS
         img_result = img_warp_colored.copy()
-        img_result = utlis.showAnswers(img_result, my_index, grading, ans, questions, choices)
+        img_result = utlis.show_answers(img_result, my_index, grading, ans, questions, choices)
         img_raw_drawing = np.zeros_like(img_warp_colored)
-        img_raw_drawing = utlis.showAnswers(img_raw_drawing, my_index, grading, ans, questions, choices)
+        img_raw_drawing = utlis.show_answers(img_raw_drawing, my_index, grading, ans, questions, choices)
 
     # print(biggest_contour)
     # print(len(biggest_contour))
@@ -105,7 +113,7 @@ def run(path):
                                                           img_thresh],
                    [img_result, img_raw_drawing, img_blank, img_blank])
 
-    img_stack = utlis.stackImages(image_array, 0.25)
+    img_stack = utlis.stack_images(image_array, 0.3)
 
     cv.imshow("Stacked Images", img_stack)
 
@@ -115,8 +123,8 @@ def run(path):
 
 
 def main():
-   path = r'img3.jpeg'
-   run(path)
+    path = r'img6.jpg'
+    run(path)
 
 
 if __name__ == '__main__':
