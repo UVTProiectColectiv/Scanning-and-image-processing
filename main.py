@@ -1,21 +1,18 @@
 import cv2 as cv
 import numpy as np
 import utlis
-from PIL import Image
 
 
-def run(path):
-    width_img = 700
-    height_img = 700
+def run(img):
     questions = 5
     choices = 5
     ans = ["A", "D", "B", "E", "E"]
-    img = cv.imread(path)
+    # img = cv.imread(path)
     # print(type(img))
 
     # PREPROCESSING
-    img = cv.resize(img, (width_img, height_img))
-    # print(type(img))
+    width_img = 700
+    height_img = 700
     img_contours = img.copy()
     img_biggest_contours = img.copy()
     # analysing grayscale image is about 3 times faster
@@ -128,9 +125,14 @@ def run(path):
 
 
 def main():
-    path = r'img4.jpg'
-    # image = utlis.read_image(1)
-    run(path)
+    # path = r'img4.jpg'
+    image = utlis.read_image(1)
+    # print(type(image)) <class 'PIL.JpegImagePlugin.JpegImageFile'>
+    # image.show()
+    image = np.asarray(image)
+    # cv.imshow("Test", image)
+    # print(type(image))
+    run(image)
 
 
 if __name__ == '__main__':
