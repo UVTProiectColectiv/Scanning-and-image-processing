@@ -1,6 +1,7 @@
 import cv2 as cv
 import numpy as np
 import utlis
+from PIL import Image
 
 
 def run(path):
@@ -8,7 +9,7 @@ def run(path):
     height_img = 700
     questions = 5
     choices = 5
-    ans = [1, 2, 0, 1, 4]
+    ans = ["A", "D", "B", "E", "E"]
     img = cv.imread(path)
     # print(type(img))
 
@@ -50,8 +51,8 @@ def run(path):
         matrix = cv.getPerspectiveTransform(pt_g1, pt_g2)
         img_warp_colored = cv.warpPerspective(img, matrix, (width_img, height_img))
 
-        code = utlis.extract_code(img)
-        print(code)
+        # code = utlis.extract_code(img)
+        # print(code)
 
         # APPLY THRESHOLD
         img_warp_gray = cv.cvtColor(img_warp_colored, cv.COLOR_BGR2GRAY)
@@ -76,16 +77,20 @@ def run(path):
                 count_c = 0
         # print(my_pixel_val)
 
-        # FINDING INDEX VALUES OF THE MARKINGS
+        # FINDING ANSWERS VALUES OF THE MARKINGS
         my_index = []
+
         for x in range(0, questions):
-            arr = my_pixel_val[x]
-            # print("Array: ", arr)
-            my_index_val = np.where(arr == np.amax(arr))
-            # print(my_index_val)
-            # print(my_index_val[0])
-            # print(my_index_val[0][0])
-            my_index.append(my_index_val[0][0])
+            maxim = 0
+            for y in range(0, choices):
+                if my_pixel_val[x][y] > maxim:
+                    maxim = my_pixel_val[x][y]
+                    row = x
+                    col = y
+            # print(row, col)
+            ans_added = utlis.convert(col, row)
+            # print(ans_added)
+            my_index.append(ans_added)
         print(my_index)
 
         # GRADING
@@ -100,22 +105,22 @@ def run(path):
         print(score)
 
         # DISPLAYING ANSWERS
-        img_result = img_warp_colored.copy()
-        img_result = utlis.show_answers(img_result, my_index, grading, ans, questions, choices)
-        img_raw_drawing = np.zeros_like(img_warp_colored)
-        img_raw_drawing = utlis.show_answers(img_raw_drawing, my_index, grading, ans, questions, choices)
+        # img_result = img_warp_colored.copy()
+        # img_result = utlis.show_answers(img_result, my_index, grading, ans, questions, choices)
+        # img_raw_drawing = np.zeros_like(img_warp_colored)
+        # img_raw_drawing = utlis.show_answers(img_raw_drawing, my_index, grading, ans, questions, choices)
 
     # print(biggest_contour)
     # print(len(biggest_contour))
 
-    img_blank = np.zeros_like(img)
-    image_array = ([img, img_gray, img_blur, img_canny], [img_contours, img_biggest_contours, img_warp_colored,
-                                                          img_thresh],
-                   [img_result, img_raw_drawing, img_blank, img_blank])
+    # img_blank = np.zeros_like(img)
+    # image_array = ([img, img_gray, img_blur, img_canny], [img_contours, img_biggest_contours, img_warp_colored,
+    #                                                      img_thresh],
+    #               [img_result, img_raw_drawing, img_blank, img_blank])
 
-    img_stack = utlis.stack_images(image_array, 0.3)
+    # img_stack = utlis.stack_images(image_array, 0.3)
 
-    cv.imshow("Stacked Images", img_stack)
+    # cv.imshow("Stacked Images", img_stack)
 
     # DE-ALLOCATE ANY ASSOCIATED MEMORY USAGE
     if cv.waitKey(0) and 0xff == 27:
@@ -123,7 +128,8 @@ def run(path):
 
 
 def main():
-    path = r'img6.jpg'
+    path = r'img4.jpg'
+    # image = utlis.read_image(1)
     run(path)
 
 
