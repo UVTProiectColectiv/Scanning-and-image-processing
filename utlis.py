@@ -252,16 +252,31 @@ def run(img):
         my_index = []
 
         for x in range(0, questions):
-            maxim = 0
+            maxim = 0  # COUNTER FOR EVERY QUESTION
+            count = 0  # COUNTER TO CHECK IF THERE ARE MANY ANSWERS
+            count_min = 0  # COUNTER TO CHECK IF THERE ARE NOT ANSWERS
             for y in range(0, choices):
+                if my_pixel_val[x][y] >= 10000:
+                    count += 1
                 if my_pixel_val[x][y] > maxim:
                     maxim = my_pixel_val[x][y]
                     row = x
                     col = y
-            # print(row, col)
-            ans_added = convert(col, row)
-            # print(ans_added)
-            my_index.append(ans_added)
+                if my_pixel_val[x][y] <= 8000:
+                    count_min += 1
+            if count_min == choices:
+                for i in range(0, questions):
+                    my_index.append("INVALID")
+                break
+            else:
+                if count >= 2:
+                    my_index.append("INVALID")
+                else:
+                    # print(row, col)
+                    ans_added = convert(col, row)
+                    # print(ans_added)
+                    my_index.append(ans_added)
+
         print(my_index)
 
         # GRADING
