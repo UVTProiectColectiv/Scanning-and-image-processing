@@ -1,6 +1,10 @@
 import cv2
 import numpy as np
 from pytesseract import pytesseract
+import mysql.connector
+import base64
+from PIL import Image
+import io
 
 
 # TO STACK ALL THE IMAGES IN ONE WINDOW
@@ -136,3 +140,38 @@ def extract_code(img):
     # print(code)
     # print(type(code))
     return code
+
+
+def read_image(cod_user):
+
+    conn = mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="112322123",
+        database="proiectcolectiv"  # Name of the database
+    )
+
+    cursor = conn.cursor()
+    query = 'SELECT POZA_TEST FROM tests WHERE COD_USER=%s'
+    cursor.execute(query, (cod_user,))
+    data = cursor.fetchall()
+
+    image = data[0][0]
+    binary_data = base64.b64decode(image)
+    image = Image.open(io.BytesIO(binary_data))
+    # print(type(image))
+    # image.show()
+    return image
+
+
+def convert(x, y):
+    if x == 0 and y in range(0, 5):
+        return "A"
+    elif x == 1 and y in range(0, 5):
+        return "B"
+    elif x == 2 and y in range(0, 5):
+        return "C"
+    elif x == 3 and y in range(0, 5):
+        return "D"
+    elif x == 4 and y in range(0, 5):
+        return "E"
