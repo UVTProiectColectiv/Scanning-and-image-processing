@@ -5,7 +5,8 @@ import mysql.connector
 import base64
 from PIL import Image
 import io
-
+import mysql.connector
+import re
 
 questions = 5
 choices = 5
@@ -142,6 +143,37 @@ def crop_image(image):
     img_res = image.crop((left, top, right, bottom))
 
     return img_res
+
+
+def extract_db(code):
+    db = mysql.connector.connect(host="localhost",
+                                 user="root",
+                                 password="112322123",
+                                 database="proiectcolectiv")
+    cursor = db.cursor()
+    # cautam numele testului care are un id primit ca variabila
+    query1 = "SELECT nume_test FROM tests where COD_TEST=%s"
+    idTest = (code,)
+    cursor.execute(query1, idTest)
+    testName = cursor.fetchall()
+    # print(testName)
+    # cautam lista de rasunsuri dupa numele testului
+    query2 = "SELECT lista_raspunsuri FROM answers WHERE nume_test = %s "
+    cursor.execute(query2, testName[0])
+    myresult = cursor.fetchall()
+    # print(myresult)
+    listOfAnswers = list(myresult[0])  # convertim lista raspunsurilor din tuplu->lista
+    answers = re.split('\r\n', listOfAnswers[0])  # facem split pentru a avea fiecare rezultat in parte
+
+    result = []
+
+    for i in answers:
+        result.append(i[2])
+
+    # print(answers)
+    for i in result:
+        i.upper()
+    return result
 
 
 def extract_code(img):
