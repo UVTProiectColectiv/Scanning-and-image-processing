@@ -7,6 +7,10 @@ from PIL import Image
 import io
 
 
+questions = 5
+choices = 5
+
+
 # TO STACK ALL THE IMAGES IN ONE WINDOW
 def stack_images(img_array, scale, lables=[]):
     rows = len(img_array)
@@ -130,12 +134,23 @@ def show_answers(img, my_index, grading, ans, questions, choices):
     return img
 
 
+def crop_image(image):
+    left = 20
+    top = 0
+    right = 450
+    bottom = 63
+    img_res = image.crop((left, top, right, bottom))
+
+    return img_res
+
+
 def extract_code(img):
     path_to_tesseract = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
     pytesseract.tesseract_cmd = path_to_tesseract
     text = pytesseract.image_to_string(img)
     text = text[:-1].strip().split(" ")
-    # print(type(text[-1]))
+    # print(text[-1])
+    # print(text)
     code = int(text[-1])
     # print(code)
     # print(type(code))
@@ -178,9 +193,9 @@ def convert(x, y):
 
 
 def run(img):
-    questions = 5
-    choices = 5
-    ans = ["A", "D", "B", "E", "E"]
+    global questions
+    global choices
+
     # img = cv.imread(path)
     # print(type(img))
 
@@ -216,6 +231,7 @@ def run(img):
         cv.drawContours(img_biggest_contours, code_contour, -1, (0, 0, 255), 30)
 
         biggest_contour = reorder(biggest_contour)
+        cv.imshow("test", img_biggest_contours)
 
         pt_g1 = np.float32(biggest_contour)
         pt_g2 = np.float32([[0, 0], [width_img, 0], [0, height_img], [width_img, height_img]])
@@ -277,18 +293,7 @@ def run(img):
                     # print(ans_added)
                     my_index.append(ans_added)
 
-        print(my_index)
-
-        # GRADING
-        grading = []
-        for x in range(0, questions):
-            if ans[x] == my_index[x]:
-                grading.append(1)
-            else:
-                grading.append(0)
-        # print(grading)
-        score = (sum(grading) / questions) * 100  # FINAL GRADE
-        print(score)
+        return my_index
 
         # DISPLAYING ANSWERS
         # img_result = img_warp_colored.copy()
@@ -300,14 +305,30 @@ def run(img):
     # print(len(biggest_contour))
 
     # img_blank = np.zeros_like(img)
-    # image_array = ([img, img_gray, img_blur, img_canny], [img_contours, img_biggest_contours, img_warp_colored,
-    #                                                      img_thresh],
-    #               [img_result, img_raw_drawing, img_blank, img_blank])
+    # image_array = ([img, img_gray, img_blur, img_canny], [img_contours, img_biggest_contours,
+    #                                                       img_warp_colored, img_thresh],
+    #                [img_blank, img_blank, img_blank, img_blank])
 
-    # img_stack = utlis.stack_images(image_array, 0.3)
+    # img_stack = stack_images(image_array, 0.3)
 
     # cv.imshow("Stacked Images", img_stack)
 
     # DE-ALLOCATE ANY ASSOCIATED MEMORY USAGE
     if cv.waitKey(0) and 0xff == 27:
         cv.destroyAllWindows()
+
+
+# GRADING
+def get_grade(ans, choices):
+    global questions
+
+    grading = []
+    for x in range(0, questions):
+        if ans[x] == choices[x]:
+            grading.append(1)
+        else:
+            grading.append(0)
+    # print(grading)
+    score = (sum(grading) / questions) * 100  # FINAL GRADE
+    # print(score)
+    return score
