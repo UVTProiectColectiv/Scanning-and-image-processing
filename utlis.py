@@ -12,6 +12,49 @@ questions = 5
 choices = 5
 
 
+def base64Convert(img):
+
+    with open(img, "rb") as img_file:
+        my_string = base64.b64encode(img_file.read())
+        return my_string
+
+
+def insertPhoto():
+    try:
+        connection = mysql.connector.connect(host='localhost',
+                                             database='proiectcolectiv',
+                                             user='root',
+                                             password='112322123')
+        cursor = connection.cursor()
+
+
+        query = """ UPDATE tests
+                    SET POZA_TEST = %s
+                    WHERE COD_TEST = %s """
+
+
+        first_profile_picture = base64Convert("img8.jpeg")
+        data = (first_profile_picture, 3)
+
+        # Inserting the data in database in tuple format
+        result = cursor.execute(query, data)
+        # Commiting the data
+        connection.commit()
+        print("Successfully Inserted Values")
+
+    # Print error if occured
+    except mysql.connector.Error as error:
+        print(format(error))
+
+    finally:
+
+        # Closing all resources
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+            print("MySQL connection is closed")
+
+
 # TO STACK ALL THE IMAGES IN ONE WINDOW
 def stack_images(img_array, scale, lables=[]):
     rows = len(img_array)
@@ -145,51 +188,42 @@ def crop_image(image):
     return img_res
 
 
-def extract_db(code):
+def extract_db(nume_test):
     db = mysql.connector.connect(host="localhost",
                                  user="root",
                                  password="112322123",
                                  database="proiectcolectiv")
     cursor = db.cursor()
-    # cautam numele testului care are un id primit ca variabila
-    query1 = "SELECT nume_test FROM tests where COD_TEST=%s"
-    idTest = (code,)
-    cursor.execute(query1, idTest)
-    testName = cursor.fetchall()
-    # print(testName)
     # cautam lista de rasunsuri dupa numele testului
     query2 = "SELECT lista_raspunsuri FROM answers WHERE nume_test = %s "
-    cursor.execute(query2, testName[0])
+    cursor.execute(query2, (nume_test,))
     myresult = cursor.fetchall()
     # print(myresult)
-    listOfAnswers = list(myresult[0])  # convertim lista raspunsurilor din tuplu->lista
-    answers = re.split('\r\n', listOfAnswers[0])  # facem split pentru a avea fiecare rezultat in parte
+    list_of_answers = list(myresult[0])  # convertim lista raspunsurilor din tuplu->lista
+    answers = re.split('\r\n', list_of_answers[0])  # facem split pentru a avea fiecare rezultat in parte
 
     result = []
 
     for i in answers:
-        result.append(i[2])
+        result.append(i[2].upper())
 
-    # print(answers)
-    for i in result:
-        i.upper()
     return result
 
 
-def extract_code(img):
+def extract_name(img):
     path_to_tesseract = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
     pytesseract.tesseract_cmd = path_to_tesseract
     text = pytesseract.image_to_string(img)
     text = text[:-1].strip().split(" ")
     # print(text[-1])
     # print(text)
-    code = int(text[-1])
+    code = text[-1]
     # print(code)
     # print(type(code))
     return code
 
 
-def read_image(cod_user):
+def read_image():
 
     conn = mysql.connector.connect(
         host="localhost",
@@ -199,8 +233,8 @@ def read_image(cod_user):
     )
 
     cursor = conn.cursor()
-    query = 'SELECT POZA_TEST FROM tests WHERE COD_USER=%s'
-    cursor.execute(query, (cod_user,))
+    query = 'SELECT POZA_TEST FROM tests ORDER BY COD_TEST DESC LIMIT 1'
+    cursor.execute(query)
     data = cursor.fetchall()
 
     image = data[0][0]
@@ -253,14 +287,14 @@ def run(img):
     rect_con = rect_contour(contours)
     # print(rectCon)
     biggest_contour = get_corner_points(rect_con[0])
-    code_contour = get_corner_points(rect_con[2])
+    #code_contour = get_corner_points(rect_con[2])
     # print(biggestContour)
     # print(biggestContour.shape)
     # rect_con[1] - the second largest
 
-    if biggest_contour.size != 0 and code_contour.size != 0:
+    if biggest_contour.size != 0:
         cv.drawContours(img_biggest_contours, biggest_contour, -1, (255, 0, 0), 30)
-        cv.drawContours(img_biggest_contours, code_contour, -1, (0, 0, 255), 30)
+        #cv.drawContours(img_biggest_contours, code_contour, -1, (0, 0, 255), 30)
 
         biggest_contour = reorder(biggest_contour)
         cv.imshow("test", img_biggest_contours)
