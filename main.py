@@ -1,13 +1,15 @@
+import cv2
 import numpy as np
 import utlis
-from PIL import Image
 
 
 def main():
-    image = utlis.read_image(3)
+    image = utlis.read_image()
+    image.show()
     img_crop = utlis.crop_image(image)
-    code = utlis.extract_code(img_crop)
-    # print(code)
+    nume_test = utlis.extract_name(img_crop)
+    img_crop.show()
+    # print(nume_test)
 
     img = image.copy()
     img = np.asarray(img)
@@ -15,9 +17,9 @@ def main():
     choices = utlis.run(img)
     # print(choices)
 
-    answers = utlis.extract_db(1005)
-    print(answers)
-    # grade = utlis.get_grade(choices, ['A', 'B', 'C', 'E', 'A'])
+    answers = utlis.extract_db(nume_test)
+    # print(answers)
+    grade = utlis.get_grade(choices, answers)
     # print(grade)
 
     # utlis.insertPhoto()
