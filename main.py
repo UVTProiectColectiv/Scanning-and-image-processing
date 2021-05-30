@@ -1,4 +1,3 @@
-import cv2
 import numpy as np
 import utlis
 
@@ -21,7 +20,7 @@ def main():
     # print(answers)
     grade = utlis.get_grade(choices, answers)
     # print(grade)
-
+    utlis.insert_grade(grade)
     # utlis.insertPhoto()
 
 
