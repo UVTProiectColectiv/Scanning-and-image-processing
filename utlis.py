@@ -7,6 +7,7 @@ from PIL import Image
 import io
 import mysql.connector
 import re
+import pymysql
 
 questions = 5
 choices = 5
@@ -21,17 +22,13 @@ def base64Convert(img):
 
 def insertPhoto():
     try:
-        connection = mysql.connector.connect(host='localhost',
-                                             database='proiectcolectiv',
-                                             user='root',
-                                             password='112322123')
-        cursor = connection.cursor()
+        connection = pymysql.connect(host='localhost', port=3306, user='root', password='', db='proiectcolectiv')
 
+        cursor = connection.cursor()
 
         query = """ UPDATE tests
                     SET POZA_TEST = %s
                     WHERE COD_TEST = %s """
-
 
         first_profile_picture = base64Convert("img8.jpeg")
         data = (first_profile_picture, 3)
@@ -189,10 +186,8 @@ def crop_image(image):
 
 
 def extract_db(nume_test):
-    db = mysql.connector.connect(host="localhost",
-                                 user="root",
-                                 password="112322123",
-                                 database="proiectcolectiv")
+    db = pymysql.connect(host='localhost', port=3306, user='root', password='', db='proiectcolectiv')
+
     cursor = db.cursor()
     # cautam lista de rasunsuri dupa numele testului
     query2 = "SELECT lista_raspunsuri FROM answers WHERE nume_test = %s "
@@ -223,14 +218,16 @@ def extract_name(img):
     return code
 
 
+def insert_grade(grade):
+    db = pymysql.connect(host='localhost', port=3306, user='root', password='', db='proiectcolectiv')
+    cursor = db.cursor()
+    query1 = "update tests set procent_corect=%s order by id desc limit 1"
+    cursor.execute(query1, (grade,))
+
+
 def read_image():
 
-    conn = mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="112322123",
-        database="proiectcolectiv"  # Name of the database
-    )
+    conn = pymysql.connect(host='localhost', port=3306, user='root', password='', db='proiectcolectiv')
 
     cursor = conn.cursor()
     query = 'SELECT POZA_TEST FROM tests ORDER BY COD_TEST DESC LIMIT 1'
@@ -287,14 +284,14 @@ def run(img):
     rect_con = rect_contour(contours)
     # print(rectCon)
     biggest_contour = get_corner_points(rect_con[0])
-    #code_contour = get_corner_points(rect_con[2])
+    # code_contour = get_corner_points(rect_con[2])
     # print(biggestContour)
     # print(biggestContour.shape)
     # rect_con[1] - the second largest
 
     if biggest_contour.size != 0:
         cv.drawContours(img_biggest_contours, biggest_contour, -1, (255, 0, 0), 30)
-        #cv.drawContours(img_biggest_contours, code_contour, -1, (0, 0, 255), 30)
+        # cv.drawContours(img_biggest_contours, code_contour, -1, (0, 0, 255), 30)
 
         biggest_contour = reorder(biggest_contour)
         cv.imshow("test", img_biggest_contours)
